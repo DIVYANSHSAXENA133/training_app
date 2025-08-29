@@ -1,219 +1,162 @@
 // Training Configuration - Easily customize all training content here
 class TrainingConfig {
-  // Company Information
-  static const Map<String, dynamic> company = {
-    'name': 'BlitzNow',
-    'tagline': 'Empowering Delivery Partners',
-    'logo': '🚀',
-  };
-
-  // Day 1 Training Content - Different for each hub type
-  static const Map<String, dynamic> day1 = {
-    'title': 'Day 1 Training',
-    'subtitle': 'Foundation & Basics',
-    
-    // LM Hub specific content
+  // App Configuration
+  static const String appName = 'BlitzNow Training';
+  static const String appVersion = '1.0.0';
+  
+  // Colors
+  static const int primaryColor = 0xFF1E3A8A;
+  static const int secondaryColor = 0xFF3B82F6;
+  static const int accentColor = 0xFF10B981;
+  
+  // Joining Bonus Configuration
+  static const double day1Bonus = 500.0;
+  static const double day2Bonus = 500.0;
+  static const double day3Bonus = 500.0;
+  static const double totalBonus = day1Bonus + day2Bonus + day3Bonus;
+  
+  // Training Duration (in minutes)
+  static const int day1Duration = 45;
+  static const int day2Duration = 60;
+  static const int day3Duration = 75;
+  
+  // Module Types
+  static const List<String> moduleTypes = ['lm_hub', 'quick_hub'];
+  
+  // Day Types
+  static const List<String> dayTypes = ['day1', 'day2', 'day3'];
+  
+  // Attendance Configuration
+  static const int attendanceScanDuration = 3; // seconds
+  static const bool requireFaceScan = true;
+  
+  // API Configuration
+  static const String apiBaseUrl = 'YOUR_LAMBDA_API_ENDPOINT';
+  static const int apiTimeout = 30000; // milliseconds
+  
+  // Google Sheets Configuration
+  static const String progressSheetName = 'Training_Progress';
+  static const List<String> sheetColumns = [
+    'rider_id',
+    'module_started_day1',
+    'module_started_day2', 
+    'module_started_day3',
+    'module_completed_day1',
+    'module_completed_day2',
+    'module_completed_day3',
+    'updated_at'
+  ];
+  
+  // Training Content - Easy to customize
+  static const Map<String, Map<String, String>> trainingContent = {
     'lm_hub': {
-      'title': 'Day 1 Training - LM Hub',
-      'subtitle': 'Last Mile Delivery Foundation',
-      'steps': [
-        {
-          'id': 'welcome',
-          'title': 'Welcome to LM Hub Training',
-          'icon': '🏠',
-          'content': {
-            'title': 'Welcome to LM Hub - Last Mile Excellence!',
-            'message': [
-              'Dear Kaptaan, welcome to the LM Hub family!',
-              'As an LM Hub delivery partner, you\'ll be the final link in our delivery chain, bringing packages directly to customers\' doorsteps.',
-              'You\'ll learn specialized skills for residential deliveries, customer interactions, and managing complex delivery scenarios.',
-              'Get ready to become a master of last-mile delivery excellence!'
-            ]
-          }
-        },
-        {
-          'id': 'summary',
-          'title': 'LM Hub Training Overview',
-          'icon': '📚',
-          'content': {
-            'title': 'LM Hub Training Program Overview',
-            'description': 'Complete daily tasks and residential delivery orders assigned by your team lead. Each day builds upon the previous one, preparing you for real-world last-mile delivery scenarios.',
-            'specialFeatures': [
-              'Residential delivery techniques',
-              'Customer interaction protocols',
-              'Complex address navigation',
-              'Package handling best practices',
-              'Customer satisfaction focus'
-            ]
-          }
-        },
-        {
-          'id': 'attendance',
-          'title': 'Attendance Marking',
-          'icon': '📱',
-          'content': {
-            'title': 'Mark Your Attendance',
-            'subtitle': 'Face Scan Required',
-            'description': 'You must mark your attendance every day and be inside the LM Hub to receive residential delivery orders. This ensures proper tracking and order allocation.',
-            'reminder': 'Attendance marking is mandatory for all training days. You cannot proceed with training or receive orders without marking attendance.',
-            'lmHubSpecific': 'LM Hub partners must be present for morning briefings and route planning sessions.'
-          }
-        },
-        {
-          'id': 'lmHubTraining',
-          'title': 'LM Hub Specific Training',
-          'icon': '🏠',
-          'content': {
-            'title': 'Last Mile Delivery Training',
-            'subtitle': 'Mastering Residential Deliveries',
-            'description': 'Complete these specialized training modules to learn LM Hub specific skills:',
-            'skills': [
-              'Residential area navigation and route optimization',
-              'Customer interaction and communication protocols',
-              'Package handling for fragile and valuable items',
-              'Address verification and delivery confirmation',
-              'Customer feedback collection and satisfaction',
-              'LM Hub app features and delivery management',
-              'Safety protocols for residential deliveries',
-              'Handling delivery challenges and exceptions'
-            ],
-            'lmHubFeatures': [
-              'Advanced GPS navigation for residential areas',
-              'Customer preference tracking',
-              'Delivery time slot management',
-              'Package photo confirmation system',
-              'Customer rating and feedback system'
-            ]
-          }
-        },
-        {
-          'id': 'ready',
-          'title': 'Ready for LM Hub Delivery',
-          'icon': '🎯',
-          'content': {
-            'title': 'Day 1 LM Hub Training Complete!',
-            'message': 'Congratulations! You\'ve successfully completed Day 1 LM Hub training. You\'re now ready to handle residential delivery orders and start earning as a last-mile delivery specialist.',
-            'progress': [
-              {'label': 'Attendance', 'value': 'Marked'},
-              {'label': 'LM Hub Training', 'value': 'Completed'},
-              {'label': 'Residential Delivery Skills', 'value': 'Learned'},
-              {'label': 'Hub Orientation', 'value': 'Completed'}
-            ],
-            'nextSteps': [
-              'Start accepting residential delivery orders',
-              'Apply learned navigation skills',
-              'Focus on customer satisfaction',
-              'Build your delivery reputation'
-            ]
-          }
-        }
-      ]
+      'day1_title': 'Welcome to BlitzNow Family',
+      'day1_subtitle': 'Day 1 Training - LM Hub',
+      'day1_welcome': 'Welcome to BlitzNow Family! 🚀\nYou are now a Kaptaan (Captain) in our delivery network.',
+      'day1_benefits': 'Being your own boss means:\n• Flexible working hours\n• Unlimited earning potential\n• Complete control over your schedule\n• Financial independence',
+      'day1_commitment': 'BlitzNow is committed to empowering you with:\n• Competitive earnings per delivery\n• Joining bonus for completing training\n• Support and guidance throughout your journey\n• Tools and technology to succeed',
+      
+      'day2_title': 'Advanced Delivery Skills',
+      'day2_subtitle': 'Day 2 Training - LM Hub',
+      'day2_content': 'Today you will learn:\n• Earnings module and calculations\n• COD (Cash on Delivery) management\n• Best practices for daily operations\n• Customer service excellence',
+      'day2_reminders': 'Important Reminders:\n• Mark attendance daily\n• Clear COD pendency by end of day\n• Maintain professional appearance\n• Follow safety guidelines',
+      
+      'day3_title': 'Master Delivery Partner',
+      'day3_subtitle': 'Day 3 Training - LM Hub',
+      'day3_content': 'Congratulations! You are almost ready!\n\nToday you will learn:\n• On-demand order access\n• How to receive extra orders\n• Referral program benefits\n• Advanced delivery techniques',
+      'day3_final': 'Final Steps:\n• Complete all training modules\n• Receive your rider bag and t-shirt\n• Start earning with real orders\n• Build your delivery empire!',
     },
     
-    // Quick Hub specific content
     'quick_hub': {
-      'title': 'Day 1 Training - Quick Hub',
-      'subtitle': 'Express Delivery Foundation',
-      'steps': [
-        {
-          'id': 'welcome',
-          'title': 'Welcome to Quick Hub Training',
-          'icon': '⚡',
-          'content': {
-            'title': 'Welcome to Quick Hub - Speed & Efficiency!',
-            'message': [
-              'Dear Kaptaan, welcome to the Quick Hub family!',
-              'As a Quick Hub delivery partner, you\'ll be our speed champions, handling express deliveries and time-sensitive packages.',
-              'You\'ll learn specialized skills for rapid deliveries, route optimization, and managing high-volume order scenarios.',
-              'Get ready to become a master of express delivery excellence!'
-            ]
-          }
-        },
-        {
-          'id': 'summary',
-          'title': 'Quick Hub Training Overview',
-          'icon': '📚',
-          'content': {
-            'title': 'Quick Hub Training Program Overview',
-            'description': 'Complete daily tasks and express delivery orders assigned by your team lead. Each day builds upon the previous one, preparing you for real-world quick delivery scenarios.',
-            'specialFeatures': [
-              'Express delivery techniques',
-              'Route optimization strategies',
-              'High-volume order management',
-              'Time-sensitive package handling',
-              'Speed and efficiency focus'
-            ]
-          }
-        },
-        {
-          'id': 'attendance',
-          'title': 'Attendance Marking',
-          'icon': '📱',
-          'content': {
-            'title': 'Mark Your Attendance',
-            'subtitle': 'Face Scan Required',
-            'description': 'You must mark your attendance every day and be inside the Quick Hub to receive express delivery orders. This ensures proper tracking and order allocation.',
-            'reminder': 'Attendance marking is mandatory for all training days. You cannot proceed with training or receive orders without marking attendance.',
-            'quickHubSpecific': 'Quick Hub partners must be present for speed training and route optimization sessions.'
-          }
-        },
-        {
-          'id': 'quickHubTraining',
-          'title': 'Quick Hub Specific Training',
-          'icon': '⚡',
-          'content': {
-            'title': 'Express Delivery Training',
-            'subtitle': 'Mastering Speed & Efficiency',
-            'description': 'Complete these specialized training modules to learn Quick Hub specific skills:',
-            'skills': [
-              'Express route planning and optimization',
-              'High-volume order management techniques',
-              'Time-sensitive package handling protocols',
-              'Speed delivery app features and shortcuts',
-              'Bulk order pickup and delivery strategies',
-              'Quick Hub specific delivery zones',
-              'Efficiency optimization techniques',
-              'Handling urgent delivery requests'
-            ],
-            'quickHubFeatures': [
-              'Real-time route optimization',
-              'Bulk order management system',
-              'Express delivery tracking',
-              'Speed performance metrics',
-              'Zone-based delivery optimization'
-            ]
-          }
-        },
-        {
-          'id': 'ready',
-          'title': 'Ready for Quick Hub Delivery',
-          'icon': '🎯',
-          'content': {
-            'title': 'Day 1 Quick Hub Training Complete!',
-            'message': 'Congratulations! You\'ve successfully completed Day 1 Quick Hub training. You\'re now ready to handle express delivery orders and start earning as a speed delivery specialist.',
-            'progress': [
-              {'label': 'Attendance', 'value': 'Marked'},
-              {'label': 'Quick Hub Training', 'value': 'Completed'},
-              {'label': 'Express Delivery Skills', 'value': 'Learned'},
-              {'label': 'Hub Orientation', 'value': 'Completed'}
-            ],
-            'nextSteps': [
-              'Start accepting express delivery orders',
-              'Apply learned speed techniques',
-              'Focus on delivery efficiency',
-              'Build your speed reputation'
-            ]
-          }
-        }
-      ]
-    }
+      'day1_title': 'Welcome to BlitzNow Family',
+      'day1_subtitle': 'Day 1 Training - Quick Hub',
+      'day1_welcome': 'Welcome to BlitzNow Family! 🚀\nYou are now a Kaptaan (Captain) in our delivery network.',
+      'day1_benefits': 'Being your own boss means:\n• Flexible working hours\n• Unlimited earning potential\n• Complete control over your schedule\n• Financial independence',
+      'day1_commitment': 'BlitzNow is committed to empowering you with:\n• Competitive earnings per delivery\n• Joining bonus for completing training\n• Support and guidance throughout your journey\n• Tools and technology to succeed',
+      
+      'day2_title': 'Advanced Delivery Skills',
+      'day2_subtitle': 'Day 2 Training - Quick Hub',
+      'day2_content': 'Today you will learn:\n• Earnings module and calculations\n• COD (Cash on Delivery) management\n• Best practices for daily operations\n• Customer service excellence',
+      'day2_reminders': 'Important Reminders:\n• Mark attendance daily\n• Clear COD pendency by end of day\n• Maintain professional appearance\n• Follow safety guidelines',
+      
+      'day3_title': 'Master Delivery Partner',
+      'day3_subtitle': 'Day 3 Training - Quick Hub',
+      'day3_content': 'Congratulations! You are almost ready!\n\nToday you will learn:\n• On-demand order access\n• How to receive extra orders\n• Referral program benefits\n• Advanced delivery techniques',
+      'day3_final': 'Final Steps:\n• Complete all training modules\n• Receive your rider bag and t-shirt\n• Start earning with real orders\n• Build your delivery empire!',
+    },
   };
-
-  // Joining Bonus Structure
-  static const Map<String, dynamic> joiningBonus = {
-    'totalAmount': 1500,
-    'currency': '₹',
-    'dailyAmount': 500,
-    'note': 'Joining bonus is exclusive of your per-order earnings',
+  
+  // Task Lists - Easy to customize
+  static const Map<String, Map<String, List<String>>> trainingTasks = {
+    'lm_hub': {
+      'day1': [
+        'Mark attendance via face scan',
+        'Complete guided delivery simulations',
+        'Learn app navigation',
+        'Understand delivery process',
+        'Complete test orders',
+      ],
+      'day2': [
+        'Complete attendance check',
+        'Review earnings module',
+        'Learn COD management',
+        'Practice customer interactions',
+        'Complete day 2 delivery tasks',
+      ],
+      'day3': [
+        'Complete final training',
+        'Learn on-demand features',
+        'Understand referral program',
+        'Final assessment',
+        'Receive completion certificate',
+      ],
+    },
+    
+    'quick_hub': {
+      'day1': [
+        'Mark attendance via face scan',
+        'Complete guided delivery simulations',
+        'Learn app navigation',
+        'Understand delivery process',
+        'Complete test orders',
+      ],
+      'day2': [
+        'Complete attendance check',
+        'Review earnings module',
+        'Learn COD management',
+        'Practice customer interactions',
+        'Complete day 2 delivery tasks',
+      ],
+      'day3': [
+        'Complete final training',
+        'Learn on-demand features',
+        'Understand referral program',
+        'Final assessment',
+        'Receive completion certificate',
+      ],
+    },
   };
+  
+  // Messages and Notifications
+  static const Map<String, String> messages = {
+    'welcome': 'Welcome to BlitzNow Family! 🚀',
+    'rider_not_found': 'Rider not found. Please check the Rider ID.',
+    'training_started': 'Training started successfully!',
+    'training_completed': 'Training completed successfully!',
+    'attendance_marked': 'Attendance marked successfully!',
+    'error_fetching_rider': 'Error fetching rider information',
+    'error_starting_module': 'Error starting module',
+    'error_completing_module': 'Error completing module',
+  };
+  
+  // Validation Rules
+  static const int minRiderIdLength = 3;
+  static const int maxRiderIdLength = 20;
+  static const String riderIdPattern = r'^[A-Za-z0-9_-]+$';
+  
+  // UI Configuration
+  static const double cardElevation = 4.0;
+  static const double buttonHeight = 50.0;
+  static const double borderRadius = 12.0;
+  static const Duration animationDuration = Duration(milliseconds: 300);
 }
