@@ -1,0 +1,43 @@
+{
+  "function_name": "blitznow-training-app",
+  "runtime": "python3.9",
+  "role": "arn:aws:iam::YOUR_ACCOUNT_ID:role/lambda-execution-role",
+  "handler": "lambda_function.lambda_handler",
+  "description": "BlitzNow Training App - Rider training and progress tracking",
+  "timeout": 30,
+  "memory_size": 256,
+  "environment_variables": {
+    "GOOGLE_SHEETS_CREDENTIALS": "BASE64_ENCODED_CREDENTIALS",
+    "DB_HOST": "your-read-replica-endpoint.amazonaws.com",
+    "DB_NAME": "your_database_name",
+    "DB_USER": "product_readuser",
+    "DB_PASSWORD": "ih8x80r1C9*o273e",
+    "DB_PORT": "5432"
+  },
+  "api_gateway": {
+    "name": "blitznow-training-api",
+    "description": "API Gateway for BlitzNow Training App",
+    "endpoints": [
+      {
+        "path": "/rider-info",
+        "method": "POST",
+        "description": "Get rider information"
+      },
+      {
+        "path": "/update-progress",
+        "method": "POST",
+        "description": "Update training progress"
+      },
+      {
+        "path": "/module-started",
+        "method": "POST",
+        "description": "Mark module as started"
+      },
+      {
+        "path": "/module-completed",
+        "method": "POST",
+        "description": "Mark module as completed"
+      }
+    ]
+  }
+}
