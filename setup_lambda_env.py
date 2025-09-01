@@ -43,8 +43,8 @@ def setup_lambda_environment():
     # Complete environment variables
     environment_variables = {
         "GOOGLE_SHEETS_CREDENTIALS": credentials_b64,
-        "DB_HOST": "your-read-replica-endpoint.amazonaws.com",  # Update this
-        "DB_NAME": "your_database_name",  # Update this
+        "DB_HOST": "blitz-prod-read-replica-v2.cdgpvetprks3.ap-south-1.rds.amazonaws.com",
+        "DB_NAME": "sarathy",
         **db_credentials
     }
     
@@ -65,17 +65,15 @@ def setup_lambda_environment():
     
     print(f"\n💾 Environment variables saved to: lambda_env_vars.json")
     
-    print("\n🚨 IMPORTANT: Update these values in AWS Lambda Console:")
-    print("   1. DB_HOST: Your actual read replica endpoint")
-    print("   2. DB_NAME: Your actual database name")
-    print("   3. Copy all environment variables to Lambda console")
+    print("\n✅ Database configuration complete!")
+    print("   All environment variables are ready for Lambda deployment")
     
     print("\n📋 Next Steps:")
     print("   1. Go to AWS Lambda Console")
     print("   2. Open your Lambda function")
     print("   3. Go to Configuration > Environment variables")
     print("   4. Add each variable from the list above")
-    print("   5. Update DB_HOST and DB_NAME with actual values")
+    print("   5. Deploy your Lambda function")
     
     return environment_variables
 

@@ -8,8 +8,8 @@
   "memory_size": 256,
   "environment_variables": {
     "GOOGLE_SHEETS_CREDENTIALS": "BASE64_ENCODED_CREDENTIALS",
-    "DB_HOST": "your-read-replica-endpoint.amazonaws.com",
-    "DB_NAME": "your_database_name",
+    "DB_HOST": "blitz-prod-read-replica-v2.cdgpvetprks3.ap-south-1.rds.amazonaws.com",
+    "DB_NAME": "sarathy",
     "DB_USER": "product_readuser",
     "DB_PASSWORD": "ih8x80r1C9*o273e",
     "DB_PORT": "5432"
