@@ -1,0 +1,14 @@
+# BlitzNow Training App Lambda Function Dependencies
+
+# Database connectivity (use pre-compiled binary)
+psycopg2-binary
+
+# Google Sheets integration
+gspread
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+
+# AWS Lambda runtime (included in Lambda environment)
+# boto3
+# botocore
