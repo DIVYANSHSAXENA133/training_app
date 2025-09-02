@@ -187,7 +187,7 @@ def lambda_handler(event, context):
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-        'Access-Control-Allow-Methods': 'POST,OPTIONS'
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
     }
     
     # Handle preflight OPTIONS request
@@ -209,7 +209,9 @@ def lambda_handler(event, context):
         path = event.get('path', '')
         
         if path == '/rider-info':
-            return handle_rider_info(body, headers)
+            # Get query parameters for GET requests
+            query_params = event.get('queryStringParameters') or {}
+            return handle_rider_info(query_params, headers)
         elif path == '/update-progress':
             return handle_update_progress(body, headers)
         elif path == '/module-started':
@@ -231,10 +233,11 @@ def lambda_handler(event, context):
             'body': json.dumps({'error': str(e)})
         }
 
-def handle_rider_info(body, headers):
-    """Handle rider info endpoint."""
+def handle_rider_info(query_params, headers):
+    """Handle rider info endpoint - GET request with query parameters."""
     try:
-        rider_id = body.get('rider_id')
+        rider_id = query_params.get('rider_id') if query_params else None
+        
         if not rider_id:
             return {
                 'statusCode': 400,

@@ -58,7 +58,18 @@ DB_PORT=5432
 - **Memory**: 256 MB
 - **Execution Role**: Create new role with basic Lambda permissions
 
-### Step 5: Create API Gateway
+### Step 5: API Endpoints
+
+The Lambda function supports the following endpoints:
+
+- **GET** `/rider-info?rider_id=<rider_id>` - Get rider information from database
+- **POST** `/update-progress` - Update training progress in Google Sheets
+- **POST** `/module-started` - Mark module as started
+- **POST** `/module-completed` - Mark module as completed
+
+**Note**: The `rider-info` endpoint now uses GET requests with query parameters instead of POST requests.
+
+### Step 6: Create API Gateway
 
 1. **Create API Gateway**
    - Go to API Gateway console

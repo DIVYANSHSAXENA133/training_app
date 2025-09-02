@@ -10,10 +10,9 @@ class ApiService {
   // Get rider information from replica database
   static Future<Rider?> getRiderInfo(String riderId) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/rider-info'),
+      final response = await http.get(
+        Uri.parse('$baseUrl/rider-info?rider_id=$riderId'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'rider_id': riderId}),
       );
 
       if (response.statusCode == 200) {
