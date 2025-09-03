@@ -142,13 +142,28 @@ def update_training_progress(rider_id, module_started=None, module_completed=Non
             sheet.append_row(headers)
         
         # Find existing row or create new one
-        try:
-            cell = sheet.find(rider_id)
-            row_num = cell.row
-        except:
-            # Create new row
-            row_num = len(sheet.get_all_values()) + 1
-            sheet.update_cell(row_num, 1, rider_id)
+        row_num = None
+        
+        # Get all data to search for existing rider
+        all_values = sheet.get_all_values()
+        logger.info(f"Searching for rider_id: {rider_id} in sheet with {len(all_values)} rows")
+        
+        # Search for existing rider_id in the first column
+        for i, row in enumerate(all_values):
+            if i == 0:  # Skip header row
+                continue
+            if row and str(row[0]) == str(rider_id):
+                row_num = i + 1  # +1 because sheet rows are 1-indexed
+                logger.info(f"Found existing row for rider_id {rider_id} at row {row_num}")
+                break
+        
+        # If no existing row found, create a new one
+        if row_num is None:
+            # Create new row with rider_id
+            new_row = [str(rider_id)] + [''] * (len(headers) - 1)
+            sheet.append_row(new_row)
+            row_num = len(all_values) + 1
+            logger.info(f"Created new row for rider_id {rider_id} at row {row_num}")
         
         current_time = datetime.now().isoformat()
         

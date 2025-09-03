@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/training_provider.dart';
 import '../models/training_module.dart';
 import '../widgets/attendance_check.dart';
+import '../widgets/order_simulation.dart';
 
 class TrainingScreen extends StatefulWidget {
   const TrainingScreen({super.key});
@@ -12,7 +13,8 @@ class TrainingScreen extends StatefulWidget {
 }
 
 class _TrainingScreenState extends State<TrainingScreen> {
-  final bool _attendanceMarked = false;
+  bool _attendanceMarked = false;
+  bool _orderSimulationCompleted = false;
 
   @override
   Widget build(BuildContext context) {
@@ -333,7 +335,33 @@ class _TrainingScreenState extends State<TrainingScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const AttendanceCheck(),
+                AttendanceCheck(
+                  onAttendanceMarked: () {
+                    setState(() {
+                      _attendanceMarked = true;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+              
+              // Order Simulation (only for Day 1)
+              if (_attendanceMarked && !_orderSimulationCompleted && module.dayType.toString().split('.').last == 'day1') ...[
+                const Text(
+                  'Order Simulation',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                OrderSimulation(
+                  onSimulationCompleted: () {
+                    setState(() {
+                      _orderSimulationCompleted = true;
+                    });
+                  },
+                ),
                 const SizedBox(height: 16),
               ],
               
@@ -342,7 +370,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _attendanceMarked ? () => _completeModule(provider) : null,
+                  onPressed: _canCompleteTraining(module) ? () => _completeModule(provider) : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
@@ -414,6 +442,18 @@ class _TrainingScreenState extends State<TrainingScreen> {
         ),
       );
     }
+  }
+
+  bool _canCompleteTraining(TrainingModule module) {
+    final day = module.dayType.toString().split('.').last;
+    
+    // For Day 1, both attendance and order simulation must be completed
+    if (day == 'day1') {
+      return _attendanceMarked && _orderSimulationCompleted;
+    }
+    
+    // For other days, only attendance is required
+    return _attendanceMarked;
   }
 
   void _logout(BuildContext context) {

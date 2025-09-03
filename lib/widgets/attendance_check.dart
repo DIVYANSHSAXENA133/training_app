@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AttendanceCheck extends StatefulWidget {
-  const AttendanceCheck({super.key});
+  final VoidCallback? onAttendanceMarked;
+  
+  const AttendanceCheck({super.key, this.onAttendanceMarked});
 
   @override
   State<AttendanceCheck> createState() => _AttendanceCheckState();
@@ -122,6 +124,9 @@ class _AttendanceCheckState extends State<AttendanceCheck> {
         _isScanning = false;
         _isCompleted = true;
       });
+      
+      // Notify parent widget that attendance has been marked
+      widget.onAttendanceMarked?.call();
     }
   }
 }
