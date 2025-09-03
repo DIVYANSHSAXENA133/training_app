@@ -2,6 +2,14 @@
 """
 Comprehensive API Test Suite for BlitzNow Training App
 Tests all Lambda endpoints with proper payload structures
+
+Testing Flow:
+1. GET /rider-info - Get rider information from database
+2. POST /module-started - Mark when a rider starts a training module
+3. POST /update-progress - Update training progress in Google Sheets
+4. POST /module-completed - Mark when a rider completes a training module
+5. Google Sheets Integration - Test end-to-end Google Sheets updates
+6. CORS Headers - Test cross-origin request support
 """
 
 import requests
@@ -95,41 +103,45 @@ def test_post_update_progress():
     print_status("TESTING POST /update-progress", "header")
     print("=" * 50)
     
+    # Use the same rider ID as module-started test for consistency
+    test_rider_id = "478"
+    current_time = datetime.now(timezone.utc).isoformat()
+    
     test_cases = [
-        ("New Rider - Day 1 Started", {
-            "rider_id": "TEST_478",
-            "module_started": {"day1": datetime.now(timezone.utc).isoformat()},
+        ("Update Progress - Day 1 Started", {
+            "rider_id": test_rider_id,
+            "module_started": {"day1": current_time},
             "module_completed": {},
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": current_time
         }),
-        ("Day 1 Completed", {
-            "rider_id": "TEST_478",
-            "module_started": {"day1": datetime.now(timezone.utc).isoformat()},
-            "module_completed": {"day1": datetime.now(timezone.utc).isoformat()},
-            "updated_at": datetime.now(timezone.utc).isoformat()
+        ("Update Progress - Day 1 Completed", {
+            "rider_id": test_rider_id,
+            "module_started": {"day1": current_time},
+            "module_completed": {"day1": current_time},
+            "updated_at": current_time
         }),
-        ("Day 2 Started", {
-            "rider_id": "TEST_478",
+        ("Update Progress - Day 2 Started", {
+            "rider_id": test_rider_id,
             "module_started": {
-                "day1": datetime.now(timezone.utc).isoformat(),
-                "day2": datetime.now(timezone.utc).isoformat()
+                "day1": current_time,
+                "day2": current_time
             },
-            "module_completed": {"day1": datetime.now(timezone.utc).isoformat()},
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "module_completed": {"day1": current_time},
+            "updated_at": current_time
         }),
-        ("All Days Completed", {
-            "rider_id": "TEST_478",
+        ("Update Progress - All Days Completed", {
+            "rider_id": test_rider_id,
             "module_started": {
-                "day1": datetime.now(timezone.utc).isoformat(),
-                "day2": datetime.now(timezone.utc).isoformat(),
-                "day3": datetime.now(timezone.utc).isoformat()
+                "day1": current_time,
+                "day2": current_time,
+                "day3": current_time
             },
             "module_completed": {
-                "day1": datetime.now(timezone.utc).isoformat(),
-                "day2": datetime.now(timezone.utc).isoformat(),
-                "day3": datetime.now(timezone.utc).isoformat()
+                "day1": current_time,
+                "day2": current_time,
+                "day3": current_time
             },
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": current_time
         })
     ]
     
@@ -280,6 +292,7 @@ def test_google_sheets_integration():
     print_status("TESTING GOOGLE SHEETS INTEGRATION", "header")
     print("=" * 50)
     
+    # Use a unique rider ID for Google Sheets test to avoid conflicts
     unique_rider_id = f"TEST_{int(time.time())}"
     current_time = datetime.now(timezone.utc).isoformat()
     
@@ -349,12 +362,12 @@ def main():
     print_status(f"Test started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", "info")
     print()
     
-    # Run all tests
+    # Run all tests in correct order: rider info -> module started -> module updated -> module completed
     results = []
     
     results.append(("GET /rider-info", test_get_rider_info()))
-    results.append(("POST /update-progress", test_post_update_progress()))
     results.append(("POST /module-started", test_post_module_started()))
+    results.append(("POST /update-progress", test_post_update_progress()))
     results.append(("POST /module-completed", test_post_module_completed()))
     results.append(("Google Sheets Integration", test_google_sheets_integration()))
     results.append(("CORS Headers", test_cors_headers()))
