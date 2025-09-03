@@ -27,6 +27,7 @@ class TrainingProvider with ChangeNotifier {
     try {
       // Fetch rider info from backend
       final rider = await ApiService.getRiderInfo(riderId);
+      print('rider: ${rider?.toJson()}');
       
       if (rider != null) {
         _currentRider = rider;
@@ -124,19 +125,21 @@ class TrainingProvider with ChangeNotifier {
   // Helper methods
   ModuleType _getModuleTypeFromNodeType(String nodeType) {
     switch (nodeType.toLowerCase()) {
-      case 'lm_hub':
-      case 'lmhub':
-        return ModuleType.lmHub;
       case 'quick_hub':
       case 'quickhub':
         return ModuleType.quickHub;
+      case 'lm_hub':
+      case 'lmhub':
+      case 'central_hub':
+      case 'centralhub':
       default:
-        return ModuleType.lmHub; // Default to LM Hub
+        return ModuleType.lmHub; // Default to LM Hub for central_hub and others
     }
   }
 
   DayType _getDayTypeFromRiderAge(int? riderAge) {
-    if (riderAge == null) return DayType.day1;
+    // If rider_age is null or > 3, default to day 1
+    if (riderAge == null || riderAge > 3) return DayType.day1;
     
     switch (riderAge) {
       case 1:

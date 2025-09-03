@@ -82,7 +82,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                 CircleAvatar(
                   backgroundColor: const Color(0xFF1E3A8A),
                   child: Text(
-                    rider.riderId.substring(0, 2).toUpperCase(),
+                    rider.riderId?.toString().substring(0, 2).toUpperCase() ?? 'ID',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

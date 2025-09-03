@@ -32,8 +32,8 @@ def get_google_sheets_client():
         if not credentials_json:
             raise Exception("GOOGLE_SHEETS_CREDENTIALS environment variable not set")
         
-        # Decode base64 credentials
-        credentials_data = json.loads(base64.b64decode(credentials_json).decode('utf-8'))
+        # Parse raw JSON credentials (no base64 decoding needed)
+        credentials_data = json.loads(credentials_json)
         
         # Create credentials object
         credentials = Credentials.from_service_account_info(
@@ -73,37 +73,36 @@ def get_rider_info(rider_id):
         
         # Execute the query with fallback to created_at
         query = """
-        SELECT
-            r.rider_id,
-            n.node_type,
-            CASE
-                -- First check if tour dates exist and calculate based on tour_date
-                WHEN EXISTS (
-                    SELECT 1 FROM application_db.tour tu 
-                    WHERE tu.node_id = n.node_id
-                ) THEN
-                    CASE
-                        WHEN (MIN(tu.tour_date)::date - CURRENT_DATE) = 0 THEN 1
-                        WHEN (MIN(tu.tour_date)::date - CURRENT_DATE) = 1 THEN 2
-                        WHEN (MIN(tu.tour_date)::date - CURRENT_DATE) = 2 THEN 3
-                        ELSE NULL
-                    END
-                -- Fallback: if no tour dates exist, use rider.created_at
-                ELSE
-                    CASE
-                        WHEN (r.created_at::date - CURRENT_DATE) = 0 THEN 1
-                        WHEN (r.created_at::date - CURRENT_DATE) = 1 THEN 2
-                        WHEN (r.created_at::date - CURRENT_DATE) = 2 THEN 3
-                        ELSE NULL
-                    END
-            END AS rider_age
-        FROM application_db.rider r
-        JOIN application_db.node n
-        ON r.node_node_id = n.node_id
-        LEFT JOIN application_db.tour tu
-        ON tu.node_id = n.node_id
-        WHERE r.rider_id = %s
-        GROUP BY r.rider_id, n.node_type, r.created_at;
+        WITH tour_min AS (
+  SELECT node_id, MIN(tour_date)::date AS min_tour_date
+  FROM tour
+  GROUP BY node_id
+)
+SELECT
+  r.rider_id,
+  n.node_type,
+  CASE
+    WHEN tm.min_tour_date IS NOT NULL THEN
+      CASE
+        WHEN (tm.min_tour_date - CURRENT_DATE) = 0 THEN 1
+        WHEN (tm.min_tour_date - CURRENT_DATE) = 1 THEN 2
+        WHEN (tm.min_tour_date - CURRENT_DATE) = 2 THEN 3
+        ELSE NULL
+      END
+    ELSE
+      CASE
+        WHEN (r.created_at::date - CURRENT_DATE) = 0 THEN 1
+        WHEN (r.created_at::date - CURRENT_DATE) = 1 THEN 2
+        WHEN (r.created_at::date - CURRENT_DATE) = 2 THEN 3
+        ELSE NULL
+      END
+  END AS rider_age
+FROM rider r
+JOIN node n
+  ON r.node_node_id = n.node_id
+LEFT JOIN tour_min tm
+  ON tm.node_id = n.node_id
+WHERE r.rider_id = %s;
         """
         
         cursor.execute(query, (rider_id,))

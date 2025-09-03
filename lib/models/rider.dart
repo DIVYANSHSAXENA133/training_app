@@ -1,5 +1,5 @@
 class Rider {
-  final String riderId;
+  final int riderId;
   final String nodeType;
   final int? riderAge;
 

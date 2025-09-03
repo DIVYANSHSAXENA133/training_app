@@ -5,7 +5,7 @@ import '../models/rider.dart';
 import '../models/training_progress.dart';
 
 class ApiService {
-  static const String baseUrl = 'YOUR_LAMBDA_API_ENDPOINT'; // Replace with your Lambda endpoint
+  static const String baseUrl = 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com'; // Replace with your Lambda endpoint
   
   // Get rider information from replica database
   static Future<Rider?> getRiderInfo(String riderId) async {
@@ -14,6 +14,7 @@ class ApiService {
         Uri.parse('$baseUrl/rider-info?rider_id=$riderId'),
         headers: {'Content-Type': 'application/json'},
       );
+      print('response: ${response}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -43,7 +44,7 @@ class ApiService {
   }
 
   // Mark module as started
-  static Future<bool> markModuleStarted(String riderId, String day) async {
+  static Future<bool> markModuleStarted(int riderId, String day) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/module-started'),
@@ -63,7 +64,7 @@ class ApiService {
   }
 
   // Mark module as completed
-  static Future<bool> markModuleCompleted(String riderId, String day) async {
+  static Future<bool> markModuleCompleted(int riderId, String day) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/module-completed'),
