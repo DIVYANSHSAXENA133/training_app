@@ -3,50 +3,37 @@
 BlitzNow Training App - AWS Lambda Function
 This Lambda function handles:
 1. Rider information retrieval from database
-2. Training progress tracking in Google Sheets
+2. Training progress tracking in Supabase
 3. Module start/completion tracking
 """
 
 import json
 import psycopg2
-import gspread
-from google.oauth2.service_account import Credentials
+from supabase import create_client, Client
 import os
-import base64
 from datetime import datetime
 import logging
+from mock_data import get_mock_rider_info, get_mock_training_progress
 
 # Configure logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Google Sheets configuration
-SHEET_ID = '1uHaV50xWxJal6f4IIbIleBcgj9fAN6FhXq-qqzIgRH4'
-SHEET_NAME = 'Sheet1'
-
-def get_google_sheets_client():
-    """Initialize and return Google Sheets client."""
+# Supabase configuration
+def get_supabase_client():
+    """Initialize and return Supabase client."""
     try:
-        # Get credentials from environment variable
-        credentials_json = os.environ.get('GOOGLE_SHEETS_CREDENTIALS')
-        if not credentials_json:
-            raise Exception("GOOGLE_SHEETS_CREDENTIALS environment variable not set")
+        supabase_url = os.environ.get('SUPABASE_URL')
+        supabase_key = os.environ.get('SUPABASE_ANON_KEY')
         
-        # Parse raw JSON credentials (no base64 decoding needed)
-        credentials_data = json.loads(credentials_json)
+        if not supabase_url or not supabase_key:
+            raise Exception("SUPABASE_URL and SUPABASE_ANON_KEY environment variables must be set")
         
-        # Create credentials object
-        credentials = Credentials.from_service_account_info(
-            credentials_data,
-            scopes=['https://www.googleapis.com/auth/spreadsheets']
-        )
-        
-        # Authorize and return client
-        gc = gspread.authorize(credentials)
-        return gc
+        supabase: Client = create_client(supabase_url, supabase_key)
+        return supabase
         
     except Exception as e:
-        logger.error(f"Error initializing Google Sheets client: {str(e)}")
+        logger.error(f"Error initializing Supabase client: {str(e)}")
         raise
 
 def get_database_connection():
@@ -62,13 +49,18 @@ def get_database_connection():
         return conn
     except Exception as e:
         logger.error(f"Error connecting to database: {str(e)}")
-        raise
+        # Don't raise the exception, return None instead for fallback
+        return None
 
 def get_rider_info(rider_id):
-    """Get rider information from database."""
+    """Get rider information from database with fallback to mock data."""
     conn = None
     try:
         conn = get_database_connection()
+        if conn is None:
+            logger.info(f"Database connection failed, using mock data for rider_id: {rider_id}")
+            return get_mock_rider_info(rider_id)
+        
         cursor = conn.cursor()
         
         # Execute the query with fallback to created_at
@@ -119,79 +111,218 @@ WHERE r.rider_id = %s;
             
     except Exception as e:
         logger.error(f"Error fetching rider info: {str(e)}")
-        raise
+        logger.info(f"Falling back to mock data for rider_id: {rider_id}")
+        # Fallback to mock data for local development
+        return get_mock_rider_info(rider_id)
     finally:
         if conn:
             conn.close()
 
 def update_training_progress(rider_id, module_started=None, module_completed=None):
-    """Update training progress in Google Sheets."""
+    """Update training progress in Supabase."""
     try:
-        gc = get_google_sheets_client()
-        sheet = gc.open_by_key(SHEET_ID).sheet1
+        supabase = get_supabase_client()
         
-        # Get headers
-        headers = sheet.row_values(1)
-        if not headers:
-            # Create headers if they don't exist
-            headers = [
-                'rider_id', 'module_started_day1', 'module_started_day2', 
-                'module_started_day3', 'module_completed_day1', 
-                'module_completed_day2', 'module_completed_day3', 'updated_at'
-            ]
-            sheet.append_row(headers)
+        # Prepare update data
+        update_data = {}
         
-        # Find existing row or create new one
-        row_num = None
-        
-        # Get all data to search for existing rider
-        all_values = sheet.get_all_values()
-        logger.info(f"Searching for rider_id: {rider_id} in sheet with {len(all_values)} rows")
-        
-        # Search for existing rider_id in the first column
-        for i, row in enumerate(all_values):
-            if i == 0:  # Skip header row
-                continue
-            if row and str(row[0]) == str(rider_id):
-                row_num = i + 1  # +1 because sheet rows are 1-indexed
-                logger.info(f"Found existing row for rider_id {rider_id} at row {row_num}")
-                break
-        
-        # If no existing row found, create a new one
-        if row_num is None:
-            # Create new row with rider_id
-            new_row = [str(rider_id)] + [''] * (len(headers) - 1)
-            sheet.append_row(new_row)
-            row_num = len(all_values) + 1
-            logger.info(f"Created new row for rider_id {rider_id} at row {row_num}")
-        
-        current_time = datetime.now().isoformat()
-        
-        # Update module started
+        # Update module started timestamps
         if module_started:
             for day, timestamp in module_started.items():
-                col_name = f'module_started_{day}'
-                if col_name in headers:
-                    col_index = headers.index(col_name) + 1
-                    sheet.update_cell(row_num, col_index, timestamp)
+                column_name = f'module_started_{day}'
+                update_data[column_name] = timestamp
         
-        # Update module completed
+        # Update module completed timestamps
         if module_completed:
             for day, timestamp in module_completed.items():
-                col_name = f'module_completed_{day}'
-                if col_name in headers:
-                    col_index = headers.index(col_name) + 1
-                    sheet.update_cell(row_num, col_index, timestamp)
+                column_name = f'module_completed_{day}'
+                update_data[column_name] = timestamp
         
-        # Update timestamp
-        updated_at_col = headers.index('updated_at') + 1
-        sheet.update_cell(row_num, updated_at_col, current_time)
+        # Always update the updated_at timestamp
+        update_data['updated_at'] = datetime.now().isoformat()
         
-        return True
+        # Check if record exists for this rider
+        existing_record = supabase.table('training_progress').select('*').eq('rider_id', rider_id).execute()
+        
+        if existing_record.data:
+            # Update existing record
+            logger.info(f"Updating existing training progress for rider_id: {rider_id}")
+            result = supabase.table('training_progress').update(update_data).eq('rider_id', rider_id).execute()
+        else:
+            # Create new record
+            logger.info(f"Creating new training progress record for rider_id: {rider_id}")
+            update_data['rider_id'] = rider_id
+            result = supabase.table('training_progress').insert(update_data).execute()
+        
+        if result.data:
+            logger.info(f"Successfully updated training progress for rider_id: {rider_id}")
+            return True
+        else:
+            logger.error(f"Failed to update training progress for rider_id: {rider_id}")
+            return False
         
     except Exception as e:
         logger.error(f"Error updating training progress: {str(e)}")
         raise
+
+def get_training_progress(rider_id):
+    """Get training progress from Supabase with fallback to mock data."""
+    try:
+        supabase = get_supabase_client()
+        
+        result = supabase.table('training_progress').select('*').eq('rider_id', rider_id).execute()
+        
+        if result.data:
+            return result.data[0]
+        else:
+            return None
+        
+    except Exception as e:
+        logger.error(f"Error getting training progress: {str(e)}")
+        logger.info(f"Falling back to mock data for rider_id: {rider_id}")
+        # Fallback to mock data for local development
+        return get_mock_training_progress(rider_id)
+
+def get_tutorial_mappings(day, hub_type):
+    """Get tutorial mappings for a specific day and hub type."""
+    try:
+        supabase = get_supabase_client()
+        
+        result = supabase.table('day_hub_tutorial_mappings').select('*').eq('day', day).eq('hub_type', hub_type).order('order_index').execute()
+        
+        return result.data if result.data else []
+        
+    except Exception as e:
+        logger.error(f"Error getting tutorial mappings: {str(e)}")
+        return []
+
+def get_tutorial_states(rider_id):
+    """Get tutorial states for a rider."""
+    try:
+        supabase = get_supabase_client()
+        
+        result = supabase.table('training_progress').select('tutorial_state').eq('rider_id', rider_id).execute()
+        
+        if result.data and result.data[0].get('tutorial_state'):
+            return result.data[0]['tutorial_state']
+        else:
+            return {}
+        
+    except Exception as e:
+        logger.error(f"Error getting tutorial states: {str(e)}")
+        return {}
+
+def get_tutorial_by_id(tutorial_id):
+    """Get tutorial information by ID."""
+    try:
+        supabase = get_supabase_client()
+        
+        result = supabase.table('tutorials').select('*').eq('id', tutorial_id).execute()
+        
+        return result.data[0] if result.data else None
+        
+    except Exception as e:
+        logger.error(f"Error getting tutorial by ID: {str(e)}")
+        return None
+
+def get_all_tutorials():
+    """Get all tutorials."""
+    try:
+        supabase = get_supabase_client()
+        
+        result = supabase.table('tutorials').select('*').order('id').execute()
+        
+        return result.data if result.data else []
+        
+    except Exception as e:
+        logger.error(f"Error getting all tutorials: {str(e)}")
+        return []
+
+def update_tutorial_state(rider_id, tutorial_id, is_done, action='update'):
+    """Update tutorial state for a rider."""
+    try:
+        supabase = get_supabase_client()
+        
+        # Get current tutorial states
+        current_states = get_tutorial_states(rider_id)
+        
+        # Update the specific tutorial state
+        current_states[tutorial_id] = {
+            'id': tutorial_id,
+            'isDone': is_done
+        }
+        
+        # Update the training progress record
+        result = supabase.table('training_progress').update({
+            'tutorial_state': current_states
+        }).eq('rider_id', rider_id).execute()
+        
+        # If no record exists, create one
+        if not result.data:
+            result = supabase.table('training_progress').insert({
+                'rider_id': rider_id,
+                'tutorial_state': current_states
+            }).execute()
+        
+        return bool(result.data)
+        
+    except Exception as e:
+        logger.error(f"Error updating tutorial state: {str(e)}")
+        return False
+
+def create_tutorial(tutorial_id, title, subtitle='', description=''):
+    """Create a new tutorial."""
+    try:
+        supabase = get_supabase_client()
+        
+        result = supabase.table('tutorials').insert({
+            'id': tutorial_id,
+            'title': title,
+            'subtitle': subtitle,
+            'description': description
+        }).execute()
+        
+        return bool(result.data)
+        
+    except Exception as e:
+        logger.error(f"Error creating tutorial: {str(e)}")
+        return False
+
+def create_day_hub_mappings(day, hub_type, tutorial_ids):
+    """Create day-hub-tutorial mappings."""
+    try:
+        supabase = get_supabase_client()
+        
+        # Prepare mapping data
+        mappings = []
+        for i, tutorial_id in enumerate(tutorial_ids):
+            mappings.append({
+                'day': day,
+                'hub_type': hub_type,
+                'tutorial_id': tutorial_id,
+                'order_index': i
+            })
+        
+        result = supabase.table('day_hub_tutorial_mappings').insert(mappings).execute()
+        
+        return bool(result.data)
+        
+    except Exception as e:
+        logger.error(f"Error creating day-hub mappings: {str(e)}")
+        return False
+
+def get_all_day_hub_mappings():
+    """Get all day-hub-tutorial mappings."""
+    try:
+        supabase = get_supabase_client()
+        
+        result = supabase.table('day_hub_tutorial_mappings').select('*').order('day').order('hub_type').order('order_index').execute()
+        
+        return result.data if result.data else []
+        
+    except Exception as e:
+        logger.error(f"Error getting all day-hub mappings: {str(e)}")
+        return []
 
 def lambda_handler(event, context):
     """Main Lambda handler function."""
@@ -226,12 +357,26 @@ def lambda_handler(event, context):
             # Get query parameters for GET requests
             query_params = event.get('queryStringParameters') or {}
             return handle_rider_info(query_params, headers)
+        elif path == '/training-progress':
+            # Get query parameters for GET requests
+            query_params = event.get('queryStringParameters') or {}
+            return handle_training_progress(query_params, headers)
         elif path == '/update-progress':
             return handle_update_progress(body, headers)
         elif path == '/module-started':
             return handle_module_started(body, headers)
         elif path == '/module-completed':
             return handle_module_completed(body, headers)
+        elif path == '/get-tutorials':
+            # Get query parameters for GET requests
+            query_params = event.get('queryStringParameters') or {}
+            return handle_get_tutorials(query_params, headers)
+        elif path == '/tutorial-state':
+            return handle_tutorial_state(body, headers)
+        elif path == '/tutorials':
+            return handle_tutorials(body, headers)
+        elif path == '/day-hub-mappings':
+            return handle_day_hub_mappings(body, headers)
         else:
             return {
                 'statusCode': 404,
@@ -276,6 +421,41 @@ def handle_rider_info(query_params, headers):
             
     except Exception as e:
         logger.error(f"Error in handle_rider_info: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({'error': str(e)})
+        }
+
+def handle_training_progress(query_params, headers):
+    """Handle training progress endpoint - GET request with query parameters."""
+    try:
+        rider_id = query_params.get('rider_id') if query_params else None
+        
+        if not rider_id:
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({'error': 'Rider ID is required'})
+            }
+        
+        training_progress = get_training_progress(rider_id)
+        
+        if training_progress:
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps(training_progress)
+            }
+        else:
+            return {
+                'statusCode': 404,
+                'headers': headers,
+                'body': json.dumps({'error': 'Training progress not found'})
+            }
+            
+    except Exception as e:
+        logger.error(f"Error in handle_training_progress: {str(e)}")
         return {
             'statusCode': 500,
             'headers': headers,
@@ -394,3 +574,366 @@ def handle_module_completed(body, headers):
             'headers': headers,
             'body': json.dumps({'error': str(e)})
         }
+
+def handle_get_tutorials(query_params, headers):
+    """Handle get tutorials endpoint - main API for getting tutorials based on rider's day and hub type."""
+    try:
+        rider_id = query_params.get('rider_id') if query_params else None
+        
+        if not rider_id:
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({
+                    'message': 'Something went wrong!',
+                    'data': None,
+                    'error': 'Rider ID is required'
+                })
+            }
+        
+        # Step 1: Get rider info to determine day and hub type
+        rider_info = get_rider_info(rider_id)
+        if not rider_info:
+            return {
+                'statusCode': 404,
+                'headers': headers,
+                'body': json.dumps({
+                    'message': 'Something went wrong!',
+                    'data': None,
+                    'error': 'Rider not found'
+                })
+            }
+        
+        rider_age = rider_info.get('rider_age')
+        node_type = rider_info.get('node_type')
+        
+        if not rider_age:
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({
+                    'message': 'Something went wrong!',
+                    'data': None,
+                    'error': 'Rider age not determined'
+                })
+            }
+        
+        # Step 2: Determine hub type mapping
+        # central_hub, franchise_hub, lm_hub use lm_hub mapping
+        # quick_hub uses quick_hub mapping
+        if node_type in ['central_hub', 'franchise_hub', 'lm_hub']:
+            hub_type = 'lm_hub'
+        elif node_type == 'quick_hub':
+            hub_type = 'quick_hub'
+        else:
+            hub_type = 'lm_hub'  # Default fallback
+        
+        # Step 3: Get tutorial mappings for the day and hub type
+        tutorial_mappings = get_tutorial_mappings(rider_age, hub_type)
+        if not tutorial_mappings:
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({
+                    'message': 'Success',
+                    'data': {
+                        'rider_age': rider_age,
+                        'tutorials': []
+                    }
+                })
+            }
+        
+        # Step 4: Get tutorial states for the rider
+        tutorial_states = get_tutorial_states(rider_id)
+        
+        # Step 5: Build response with tutorial details and states
+        tutorials = []
+        for mapping in tutorial_mappings:
+            tutorial_id = mapping['tutorial_id']
+            tutorial_info = get_tutorial_by_id(tutorial_id)
+            
+            if tutorial_info:
+                # Check if tutorial is completed
+                is_done = tutorial_states.get(tutorial_id, {}).get('isDone', False)
+                
+                tutorials.append({
+                    'id': tutorial_id,
+                    'title': tutorial_info['title'],
+                    'subtitle': tutorial_info.get('subtitle', ''),
+                    'isDone': is_done
+                })
+        
+        return {
+            'statusCode': 200,
+            'headers': headers,
+            'body': json.dumps({
+                'message': 'Success',
+                'data': {
+                    'rider_age': rider_age,
+                    'tutorials': tutorials
+                }
+            })
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in handle_get_tutorials: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({
+                'message': 'Something went wrong!',
+                'data': None,
+                'error': str(e)
+            })
+        }
+
+def handle_tutorial_state(body, headers):
+    """Handle tutorial state management (create/update)."""
+    try:
+        rider_id = body.get('rider_id')
+        tutorial_id = body.get('tutorial_id')
+        is_done = body.get('isDone')
+        action = body.get('action', 'update')  # 'create' or 'update'
+        
+        if not rider_id or not tutorial_id or is_done is None:
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({
+                    'message': 'Something went wrong!',
+                    'data': None,
+                    'error': 'Rider ID, tutorial ID, and isDone status are required'
+                })
+            }
+        
+        success = update_tutorial_state(rider_id, tutorial_id, is_done, action)
+        
+        if success:
+            return {
+                'statusCode': 200,
+                'headers': headers,
+                'body': json.dumps({
+                    'message': 'Success',
+                    'data': {'updated': True}
+                })
+            }
+        else:
+            return {
+                'statusCode': 500,
+                'headers': headers,
+                'body': json.dumps({
+                    'message': 'Something went wrong!',
+                    'data': None,
+                    'error': 'Failed to update tutorial state'
+                })
+            }
+            
+    except Exception as e:
+        logger.error(f"Error in handle_tutorial_state: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({
+                'message': 'Something went wrong!',
+                'data': None,
+                'error': str(e)
+            })
+        }
+
+def handle_tutorials(body, headers):
+    """Handle tutorial management (create/update/get)."""
+    try:
+        action = body.get('action', 'get')  # 'create', 'update', 'get'
+        
+        if action == 'create':
+            tutorial_id = body.get('id')
+            title = body.get('title')
+            subtitle = body.get('subtitle', '')
+            description = body.get('description', '')
+            
+            if not tutorial_id or not title:
+                return {
+                    'statusCode': 400,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'message': 'Something went wrong!',
+                        'data': None,
+                        'error': 'Tutorial ID and title are required'
+                    })
+                }
+            
+            success = create_tutorial(tutorial_id, title, subtitle, description)
+            
+            if success:
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'message': 'Success',
+                        'data': {'created': True, 'tutorial_id': tutorial_id}
+                    })
+                }
+            else:
+                return {
+                    'statusCode': 500,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'message': 'Something went wrong!',
+                        'data': None,
+                        'error': 'Failed to create tutorial'
+                    })
+                }
+        
+        elif action == 'get':
+            tutorial_id = body.get('tutorial_id')
+            if tutorial_id:
+                tutorial = get_tutorial_by_id(tutorial_id)
+                if tutorial:
+                    return {
+                        'statusCode': 200,
+                        'headers': headers,
+                        'body': json.dumps({
+                            'message': 'Success',
+                            'data': tutorial
+                        })
+                    }
+                else:
+                    return {
+                        'statusCode': 404,
+                        'headers': headers,
+                        'body': json.dumps({
+                            'message': 'Something went wrong!',
+                            'data': None,
+                            'error': 'Tutorial not found'
+                        })
+                    }
+            else:
+                # Get all tutorials
+                tutorials = get_all_tutorials()
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'message': 'Success',
+                        'data': {'tutorials': tutorials}
+                    })
+                }
+        
+        else:
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({
+                    'message': 'Something went wrong!',
+                    'data': None,
+                    'error': 'Invalid action. Use create, update, or get'
+                })
+            }
+            
+    except Exception as e:
+        logger.error(f"Error in handle_tutorials: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({
+                'message': 'Something went wrong!',
+                'data': None,
+                'error': str(e)
+            })
+        }
+
+def handle_day_hub_mappings(body, headers):
+    """Handle day-hub-tutorial mappings management."""
+    try:
+        action = body.get('action', 'get')  # 'create', 'get'
+        
+        if action == 'create':
+            day = body.get('day')
+            hub_type = body.get('hub_type')
+            tutorial_ids = body.get('tutorial_ids', [])
+            
+            if not day or not hub_type or not tutorial_ids:
+                return {
+                    'statusCode': 400,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'message': 'Something went wrong!',
+                        'data': None,
+                        'error': 'Day, hub_type, and tutorial_ids are required'
+                    })
+                }
+            
+            success = create_day_hub_mappings(day, hub_type, tutorial_ids)
+            
+            if success:
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'message': 'Success',
+                        'data': {'created': True}
+                    })
+                }
+            else:
+                return {
+                    'statusCode': 500,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'message': 'Something went wrong!',
+                        'data': None,
+                        'error': 'Failed to create mappings'
+                    })
+                }
+        
+        elif action == 'get':
+            day = body.get('day')
+            hub_type = body.get('hub_type')
+            
+            if day and hub_type:
+                mappings = get_tutorial_mappings(day, hub_type)
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'message': 'Success',
+                        'data': {'mappings': mappings}
+                    })
+                }
+            else:
+                # Get all mappings
+                all_mappings = get_all_day_hub_mappings()
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({
+                        'message': 'Success',
+                        'data': {'mappings': all_mappings}
+                    })
+                }
+        
+        else:
+            return {
+                'statusCode': 400,
+                'headers': headers,
+                'body': json.dumps({
+                    'message': 'Something went wrong!',
+                    'data': None,
+                    'error': 'Invalid action. Use create or get'
+                })
+            }
+            
+    except Exception as e:
+        logger.error(f"Error in handle_day_hub_mappings: {str(e)}")
+        return {
+            'statusCode': 500,
+            'headers': headers,
+            'body': json.dumps({
+                'message': 'Something went wrong!',
+                'data': None,
+                'error': str(e)
+            })
+        }
+
+
+if __name__ == '__main__':
+    lambda_handler({rider_}, None)

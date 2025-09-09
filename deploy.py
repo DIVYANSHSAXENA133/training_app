@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 Simple Lambda deployment script
@@ -61,46 +62,46 @@ def create_environment_variables():
     print("\n🔐 Creating Environment Variables Configuration")
     print("=" * 40)
     
-    # Check if credentials file exists
-    if not os.path.exists('blitznow-sheets-credentials.json'):
-        print("❌ Error: blitznow-sheets-credentials.json not found")
+    # Check if environment variables file exists
+    if not os.path.exists('lambda_env_vars.json'):
+        print("❌ Error: lambda_env_vars.json not found")
+        print("📝 Please create lambda_env_vars.json with your Supabase credentials:")
+        print("   - SUPABASE_URL: Your Supabase project URL")
+        print("   - SUPABASE_ANON_KEY: Your Supabase anonymous key")
         return False
     
-    # Read credentials file
-    with open('blitznow-sheets-credentials.json', 'r') as f:
-        credentials_content = f.read().strip()
+    # Read environment variables file
+    with open('lambda_env_vars.json', 'r') as f:
+        env_vars = json.load(f)
     
-    print(f"✅ Read credentials file ({len(credentials_content)} characters)")
+    print(f"✅ Read environment variables file")
     
-    # Validate JSON
-    try:
-        credentials_json = json.loads(credentials_content)
-        print(f"✅ JSON validation successful")
-        print(f"✅ Service account: {credentials_json.get('client_email', 'N/A')}")
-    except Exception as e:
-        print(f"❌ JSON validation failed: {e}")
+    # Validate required Supabase environment variables
+    required_vars = ['SUPABASE_URL', 'SUPABASE_ANON_KEY']
+    missing_vars = [var for var in required_vars if not env_vars.get(var)]
+    
+    if missing_vars:
+        print(f"❌ Missing required environment variables: {missing_vars}")
         return False
     
-    # Create environment variables
-    env_vars = {
-        "GOOGLE_SHEETS_CREDENTIALS": credentials_content,  # Raw JSON string
-        "DB_HOST": "blitz-prod-read-replica-v2.cdgpvetprks3.ap-south-1.rds.amazonaws.com",
-        "DB_NAME": "sarathy",
-        "DB_USER": "product_readuser",
-        "DB_PASSWORD": "ih8x80r1C9*o273e",
-        "DB_PORT": "5432"
-    }
+    # Validate Supabase URL format
+    supabase_url = env_vars.get('SUPABASE_URL', '')
+    if not supabase_url.startswith('https://') or '.supabase.co' not in supabase_url:
+        print(f"❌ Invalid SUPABASE_URL format. Should be: https://your-project-ref.supabase.co")
+        return False
     
-    # Save to file
-    with open('lambda_env_vars.json', 'w') as f:
-        json.dump(env_vars, f, indent=2)
-    print(f"✅ Environment variables saved to lambda_env_vars.json")
+    print(f"✅ Supabase URL: {supabase_url}")
+    print(f"✅ Supabase Key: {env_vars.get('SUPABASE_ANON_KEY', '')[:20]}...")
     
-    # Display the credentials for manual copy
+    # Save to file (already exists, just confirm)
+    print(f"✅ Environment variables configuration ready")
+    
+    # Display the environment variables for manual copy
     print("\n" + "="*60)
-    print("🚀 COPY THIS TO AWS LAMBDA ENVIRONMENT VARIABLES:")
+    print("🚀 COPY THESE TO AWS LAMBDA ENVIRONMENT VARIABLES:")
     print("="*60)
-    print(f"GOOGLE_SHEETS_CREDENTIALS={credentials_content}")
+    for key, value in env_vars.items():
+        print(f"{key}={value}")
     print("="*60)
     
     return True

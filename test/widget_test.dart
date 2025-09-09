@@ -4,10 +4,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
 
 import 'package:blitznow_training_flutter/main.dart';
-import 'package:blitznow_training_flutter/providers/training_provider.dart';
 
 void main() {
   testWidgets('BlitzNow Training App smoke test', (WidgetTester tester) async {

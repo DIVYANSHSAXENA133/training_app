@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'blitznow_app_mock.dart';
 
 class OrderSimulation extends StatefulWidget {
   final VoidCallback? onSimulationCompleted;
@@ -10,38 +11,7 @@ class OrderSimulation extends StatefulWidget {
 }
 
 class _OrderSimulationState extends State<OrderSimulation> {
-  int _currentOrderIndex = 0;
   bool _isSimulationCompleted = false;
-  
-  final List<Map<String, dynamic>> _testOrders = [
-    {
-      'id': 'ORD001',
-      'customer': 'Rajesh Kumar',
-      'address': '123 MG Road, Bangalore',
-      'items': 'Electronics - Mobile Phone',
-      'amount': 25000,
-      'type': 'COD',
-      'instructions': 'Call before delivery',
-    },
-    {
-      'id': 'ORD002', 
-      'customer': 'Priya Sharma',
-      'address': '456 Brigade Road, Bangalore',
-      'items': 'Clothing - 2 T-shirts',
-      'amount': 1200,
-      'type': 'Prepaid',
-      'instructions': 'Leave at reception if not available',
-    },
-    {
-      'id': 'ORD003',
-      'customer': 'Amit Singh',
-      'address': '789 Koramangala, Bangalore',
-      'items': 'Food - Pizza & Drinks',
-      'amount': 450,
-      'type': 'COD',
-      'instructions': 'Deliver hot, call 5 mins before arrival',
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -49,197 +19,88 @@ class _OrderSimulationState extends State<OrderSimulation> {
       return _buildCompletionScreen();
     }
     
-    return _buildOrderScreen();
+    return _buildSimulationIntro();
   }
 
-  Widget _buildOrderScreen() {
-    final order = _testOrders[_currentOrderIndex];
-    
+  Widget _buildSimulationIntro() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.green[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.local_shipping, color: Colors.green[700], size: 30),
-              const SizedBox(width: 12),
-              Text(
-                'Test Order ${_currentOrderIndex + 1} of ${_testOrders.length}',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green[700],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          
-          _buildOrderCard(order),
-          
-          const SizedBox(height: 20),
-          
-          _buildSimulationSteps(),
-          
-          const SizedBox(height: 20),
-          
-          Row(
-            children: [
-              if (_currentOrderIndex > 0)
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _previousOrder,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Previous Order'),
-                  ),
-                ),
-              if (_currentOrderIndex > 0) const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _nextOrder,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(_currentOrderIndex == _testOrders.length - 1 
-                      ? 'Complete Simulation' 
-                      : 'Next Order'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrderCard(Map<String, dynamic> order) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Order ID: ${order['id']}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: order['type'] == 'COD' ? Colors.orange : Colors.blue,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    order['type'],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow(Icons.person, 'Customer', order['customer']),
-            _buildInfoRow(Icons.location_on, 'Address', order['address']),
-            _buildInfoRow(Icons.shopping_bag, 'Items', order['items']),
-            _buildInfoRow(Icons.currency_rupee, 'Amount', '₹${order['amount']}'),
-            _buildInfoRow(Icons.info, 'Instructions', order['instructions']),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 16, color: Colors.grey[600]),
-          const SizedBox(width: 8),
-          Text(
-            '$label: ',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSimulationSteps() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
         color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.blue[200]!),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Icon(Icons.phone_android, color: Colors.blue[700], size: 30),
+              const SizedBox(width: 12),
+              Text(
+                'BlitzNow App Simulation',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[700],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
           const Text(
-            'Simulation Steps:',
+            'Experience the real BlitzNow delivery partner app!',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
-          _buildStep('1. Navigate to delivery location', true),
-          _buildStep('2. Call customer (if COD)', true),
-          _buildStep('3. Collect payment (if COD)', true),
-          _buildStep('4. Hand over package', true),
-          _buildStep('5. Mark delivery as completed', true),
-          _buildStep('6. Take customer photo (if required)', true),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStep(String step, bool completed) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          Icon(
-            completed ? Icons.check_circle : Icons.radio_button_unchecked,
-            size: 16,
-            color: completed ? Colors.green : Colors.grey,
+          const SizedBox(height: 12),
+          
+          const Text(
+            'This simulation will show you exactly how the BlitzNow app works:',
+            style: TextStyle(fontSize: 14),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              step,
-              style: TextStyle(
-                fontSize: 14,
-                color: completed ? Colors.green[700] : Colors.grey[600],
-                decoration: completed ? TextDecoration.lineThrough : null,
+          const SizedBox(height: 12),
+          
+          _buildFeatureItem('📱 Real app interface with tabs and navigation'),
+          _buildFeatureItem('📦 Order management and acceptance flow'),
+          _buildFeatureItem('💰 Live earnings tracking and COD management'),
+          _buildFeatureItem('🚚 Complete delivery process simulation'),
+          _buildFeatureItem('👤 Profile management and settings'),
+          
+          const SizedBox(height: 20),
+          
+          const Text(
+            'You\'ll complete 3 realistic delivery orders just like a real BlitzNow partner!',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.green,
+            ),
+          ),
+          
+          const SizedBox(height: 20),
+          
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: _startAppSimulation,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1E3A8A),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Launch BlitzNow App',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -247,6 +108,24 @@ class _OrderSimulationState extends State<OrderSimulation> {
       ),
     );
   }
+
+  Widget _buildFeatureItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildCompletionScreen() {
     return Container(
@@ -297,26 +176,19 @@ class _OrderSimulationState extends State<OrderSimulation> {
     );
   }
 
-  void _previousOrder() {
-    if (_currentOrderIndex > 0) {
-      setState(() {
-        _currentOrderIndex--;
-      });
-    }
-  }
-
-  void _nextOrder() {
-    if (_currentOrderIndex < _testOrders.length - 1) {
-      setState(() {
-        _currentOrderIndex++;
-      });
-    } else {
-      setState(() {
-        _isSimulationCompleted = true;
-      });
-      
-      // Notify parent widget that simulation is completed
-      widget.onSimulationCompleted?.call();
-    }
+  void _startAppSimulation() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => BlitzNowAppMock(
+          onTrainingCompleted: () {
+            Navigator.of(context).pop();
+            setState(() {
+              _isSimulationCompleted = true;
+            });
+            widget.onSimulationCompleted?.call();
+          },
+        ),
+      ),
+    );
   }
 }

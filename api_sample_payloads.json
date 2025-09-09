@@ -1,0 +1,500 @@
+{
+  "api_base_url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com",
+  "description": "Sample payloads for all BlitzNow Training App APIs",
+  "timestamp": "2025-09-09",
+  "endpoints": {
+    "rider_info": {
+      "method": "GET",
+      "endpoint": "/rider-info",
+      "description": "Get rider information including age and node type",
+      "sample_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/rider-info?rider_id=12345",
+        "method": "GET",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "query_parameters": {
+          "rider_id": "12345"
+        }
+      },
+      "sample_response_success": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "rider_id": "12345",
+          "node_type": "central_hub",
+          "rider_age": 1
+        }
+      },
+      "sample_response_error": {
+        "status_code": 404,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "error": "Rider not found"
+        }
+      },
+      "curl_example": "curl -X GET 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/rider-info?rider_id=12345' -H 'Content-Type: application/json'"
+    },
+    "training_progress": {
+      "method": "GET",
+      "endpoint": "/training-progress",
+      "description": "Get training progress for a rider",
+      "sample_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/training-progress?rider_id=12345",
+        "method": "GET",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "query_parameters": {
+          "rider_id": "12345"
+        }
+      },
+      "sample_response_success": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "id": 1,
+          "rider_id": "12345",
+          "tutorial_state": {
+            "delivery_flow": {
+              "id": "delivery_flow",
+              "isDone": false
+            },
+            "pickup_flow": {
+              "id": "pickup_flow",
+              "isDone": true
+            }
+          },
+          "module_started_day1": "2024-01-15T09:00:00Z",
+          "module_started_day2": null,
+          "module_started_day3": null,
+          "module_completed_day1": null,
+          "module_completed_day2": null,
+          "module_completed_day3": null,
+          "created_at": "2024-01-15T08:45:00Z",
+          "updated_at": "2024-01-15T08:45:00Z"
+        }
+      },
+      "sample_response_error": {
+        "status_code": 404,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "error": "Training progress not found"
+        }
+      },
+      "curl_example": "curl -X GET 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/training-progress?rider_id=12345' -H 'Content-Type: application/json'"
+    },
+    "get_tutorials": {
+      "method": "GET",
+      "endpoint": "/get-tutorials",
+      "description": "Main API to get tutorials for a rider based on their day and hub type",
+      "sample_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/get-tutorials?rider_id=12345",
+        "method": "GET",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "query_parameters": {
+          "rider_id": "12345"
+        }
+      },
+      "sample_response_success": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "message": "Success",
+          "data": {
+            "rider_age": 1,
+            "tutorials": [
+              {
+                "id": "delivery_flow",
+                "title": "Learn how to deliver",
+                "subtitle": "The tutorial shows how to deliver an order",
+                "isDone": false
+              },
+              {
+                "id": "pickup_flow",
+                "title": "Learn how to pickup",
+                "subtitle": "The tutorial shows how to pickup an order",
+                "isDone": true
+              }
+            ]
+          }
+        }
+      },
+      "sample_response_error": {
+        "status_code": 400,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "message": "Something went wrong!",
+          "data": null,
+          "error": "Rider ID is required"
+        }
+      },
+      "curl_example": "curl -X GET 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/get-tutorials?rider_id=12345' -H 'Content-Type: application/json'"
+    },
+    "tutorial_state": {
+      "method": "POST",
+      "endpoint": "/tutorial-state",
+      "description": "Update tutorial completion status for a rider",
+      "sample_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/tutorial-state",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "rider_id": "12345",
+          "tutorial_id": "delivery_flow",
+          "isDone": true,
+          "action": "update"
+        }
+      },
+      "sample_response_success": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "message": "Success",
+          "data": {
+            "updated": true
+          }
+        }
+      },
+      "sample_response_error": {
+        "status_code": 400,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "message": "Something went wrong!",
+          "data": null,
+          "error": "Rider ID, tutorial ID, and isDone status are required"
+        }
+      },
+      "curl_example": "curl -X POST 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/tutorial-state' -H 'Content-Type: application/json' -d '{\"rider_id\":\"12345\",\"tutorial_id\":\"delivery_flow\",\"isDone\":true,\"action\":\"update\"}'"
+    },
+    "tutorials": {
+      "method": "POST",
+      "endpoint": "/tutorials",
+      "description": "Create, update, or get tutorials",
+      "create_tutorial_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/tutorials",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "action": "create",
+          "id": "delivery_flow",
+          "title": "Learn how to deliver",
+          "subtitle": "The tutorial shows how to deliver an order",
+          "description": "Complete guide to delivery process"
+        }
+      },
+      "get_tutorial_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/tutorials",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "action": "get",
+          "tutorial_id": "delivery_flow"
+        }
+      },
+      "get_all_tutorials_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/tutorials",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "action": "get"
+        }
+      },
+      "sample_response_success": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "message": "Success",
+          "data": {
+            "tutorials": [
+              {
+                "id": "delivery_flow",
+                "title": "Learn how to deliver",
+                "subtitle": "The tutorial shows how to deliver an order",
+                "description": "Complete guide to delivery process",
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-01-01T00:00:00Z"
+              }
+            ]
+          }
+        }
+      },
+      "curl_examples": {
+        "create": "curl -X POST 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/tutorials' -H 'Content-Type: application/json' -d '{\"action\":\"create\",\"id\":\"delivery_flow\",\"title\":\"Learn how to deliver\",\"subtitle\":\"The tutorial shows how to deliver an order\",\"description\":\"Complete guide to delivery process\"}'",
+        "get_all": "curl -X POST 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/tutorials' -H 'Content-Type: application/json' -d '{\"action\":\"get\"}'"
+      }
+    },
+    "module_started": {
+      "method": "POST",
+      "endpoint": "/module-started",
+      "description": "Mark a module as started for a rider",
+      "sample_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/module-started",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "rider_id": "12345",
+          "day": "day1",
+          "timestamp": "2024-01-15T09:00:00Z"
+        }
+      },
+      "sample_response_success": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "success": true,
+          "message": "Module day1 started successfully"
+        }
+      },
+      "sample_response_error": {
+        "status_code": 400,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "error": "Rider ID and day are required"
+        }
+      },
+      "curl_example": "curl -X POST 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/module-started' -H 'Content-Type: application/json' -d '{\"rider_id\":\"12345\",\"day\":\"day1\",\"timestamp\":\"2024-01-15T09:00:00Z\"}'"
+    },
+    "module_completed": {
+      "method": "POST",
+      "endpoint": "/module-completed",
+      "description": "Mark a module as completed for a rider",
+      "sample_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/module-completed",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "rider_id": "12345",
+          "day": "day1",
+          "timestamp": "2024-01-15T10:30:00Z"
+        }
+      },
+      "sample_response_success": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "success": true,
+          "message": "Module day1 completed successfully"
+        }
+      },
+      "sample_response_error": {
+        "status_code": 400,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "error": "Rider ID and day are required"
+        }
+      },
+      "curl_example": "curl -X POST 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/module-completed' -H 'Content-Type: application/json' -d '{\"rider_id\":\"12345\",\"day\":\"day1\",\"timestamp\":\"2024-01-15T10:30:00Z\"}'"
+    },
+    "update_progress": {
+      "method": "POST",
+      "endpoint": "/update-progress",
+      "description": "Update training progress with multiple module states",
+      "sample_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/update-progress",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "rider_id": "12345",
+          "module_started": {
+            "day2": "2024-01-16T09:00:00Z"
+          },
+          "module_completed": {
+            "day1": "2024-01-15T10:30:00Z"
+          }
+        }
+      },
+      "sample_response_success": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "success": true,
+          "message": "Progress updated successfully"
+        }
+      },
+      "sample_response_error": {
+        "status_code": 400,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "error": "Rider ID is required"
+        }
+      },
+      "curl_example": "curl -X POST 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/update-progress' -H 'Content-Type: application/json' -d '{\"rider_id\":\"12345\",\"module_started\":{\"day2\":\"2024-01-16T09:00:00Z\"},\"module_completed\":{\"day1\":\"2024-01-15T10:30:00Z\"}}'"
+    },
+    "day_hub_mappings": {
+      "method": "POST",
+      "endpoint": "/day-hub-mappings",
+      "description": "Create or get day-hub-tutorial mappings",
+      "create_mapping_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/day-hub-mappings",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "action": "create",
+          "day": 1,
+          "hub_type": "lm_hub",
+          "tutorial_ids": ["delivery_flow", "pickup_flow", "cod_flow"]
+        }
+      },
+      "get_mapping_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/day-hub-mappings",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "action": "get",
+          "day": 1,
+          "hub_type": "lm_hub"
+        }
+      },
+      "get_all_mappings_request": {
+        "url": "https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/day-hub-mappings",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "action": "get"
+        }
+      },
+      "sample_response_success": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+          "message": "Success",
+          "data": {
+            "mappings": [
+              {
+                "id": 1,
+                "day": 1,
+                "hub_type": "lm_hub",
+                "tutorial_id": "delivery_flow",
+                "order_index": 0
+              },
+              {
+                "id": 2,
+                "day": 1,
+                "hub_type": "lm_hub",
+                "tutorial_id": "pickup_flow",
+                "order_index": 1
+              }
+            ]
+          }
+        }
+      },
+      "curl_examples": {
+        "create": "curl -X POST 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/day-hub-mappings' -H 'Content-Type: application/json' -d '{\"action\":\"create\",\"day\":1,\"hub_type\":\"lm_hub\",\"tutorial_ids\":[\"delivery_flow\",\"pickup_flow\"]}'",
+        "get": "curl -X POST 'https://tlffrtmssa.execute-api.us-east-2.amazonaws.com/day-hub-mappings' -H 'Content-Type: application/json' -d '{\"action\":\"get\",\"day\":1,\"hub_type\":\"lm_hub\"}'"
+      }
+    }
+  },
+  "common_error_responses": {
+    "400_bad_request": {
+      "status_code": 400,
+      "body": {
+        "error": "Bad Request - Missing or invalid parameters"
+      }
+    },
+    "404_not_found": {
+      "status_code": 404,
+      "body": {
+        "error": "Not Found - Resource not found"
+      }
+    },
+    "500_internal_server_error": {
+      "status_code": 500,
+      "body": {
+        "error": "Internal Server Error - Server encountered an error"
+      }
+    }
+  },
+  "testing_notes": {
+    "working_endpoints": [
+      "/module-started",
+      "/module-completed"
+    ],
+    "missing_endpoints": [
+      "/rider-info",
+      "/training-progress", 
+      "/get-tutorials",
+      "/tutorial-state",
+      "/tutorials",
+      "/day-hub-mappings",
+      "/update-progress"
+    ],
+    "test_scripts": [
+      "test_working_apis.py - Test currently working endpoints",
+      "quick_test_production.py - Quick test of all endpoints",
+      "test_production_apis.py - Comprehensive production testing",
+      "test_all_apis_comprehensive.py - Full API testing suite",
+      "diagnose_api_gateway.py - API Gateway diagnostic tool"
+    ]
+  }
+}
